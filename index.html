@@ -10,7 +10,7 @@
   <style>
     .font-brand { font-family: 'Poppins', sans-serif; }
     
-    /* Submenu Smooth Transition */
+    /* Submenu Transition */
     .submenu {
       max-height: 0;
       overflow: hidden;
@@ -116,7 +116,7 @@
   <!-- OVERLAY SIDEBAR MOBILE -->
   <div id="sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden"></div>
 
-  <!-- SIDEBAR NAVIGATION BERCABANG -->
+  <!-- SIDEBAR NAVIGATION -->
   <aside id="sidebar" class="fixed md:static top-0 left-0 bottom-0 z-50 w-64 bg-slate-900 text-white flex-shrink-0 flex flex-col justify-between border-r border-slate-800 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
     <div>
       <div class="p-5 border-b border-slate-800 text-left flex justify-between items-center">
@@ -203,10 +203,10 @@
     </div>
   </aside>
 
-  <!-- AREA KONTEN UTAMA (KANAN) -->
+  <!-- KONTEN UTAMA -->
   <main class="flex-1 p-4 md:p-6 overflow-y-auto w-full">
 
-    <!-- MENU 1: DASHBOARD -->
+    <!-- MENU DASHBOARD -->
     <div id="menu-dashboard" class="menu-content space-y-6">
       <div class="flex justify-between items-center">
         <h2 class="text-xl font-bold text-gray-800">Ringkasan Bisnis</h2>
@@ -246,7 +246,7 @@
       </div>
     </div>
 
-    <!-- MENU 2: PEMBELIAN -->
+    <!-- MENU PEMBELIAN -->
     <div id="menu-pembelian" class="menu-content hidden space-y-6">
       <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm space-y-4">
         <div class="flex justify-between items-center border-b pb-3">
@@ -344,7 +344,7 @@
       <div id="list-riwayat-pembelian" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </div>
 
-    <!-- MENU 3: PENJUALAN -->
+    <!-- MENU PENJUALAN -->
     <div id="menu-penjualan" class="menu-content hidden space-y-6">
       <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm space-y-4">
         <div class="flex justify-between items-center border-b pb-3">
@@ -449,7 +449,7 @@
       <div id="list-faktur-jual" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
     </div>
 
-    <!-- MENU 4: PIUTANG -->
+    <!-- MENU PIUTANG -->
     <div id="menu-piutang" class="menu-content hidden space-y-6">
       <h2 class="text-xl font-bold text-amber-700">Tagihan & Piutang</h2>
       
@@ -541,7 +541,7 @@
       </div>
     </div>
 
-    <!-- MENU 5: STOK & RIWAYAT OPNAME -->
+    <!-- MENU STOK -->
     <div id="menu-stok" class="menu-content hidden space-y-6">
       <div class="flex justify-between items-center">
         <h2 class="text-xl font-bold text-gray-800">Sisa Stok & Harga Produk</h2>
@@ -568,7 +568,7 @@
       <div id="list-riwayat-opname" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
     </div>
 
-    <!-- MENU 6: MASTER DATA BARANG -->
+    <!-- MENU MASTER BARANG -->
     <div id="menu-barang" class="menu-content hidden space-y-6">
       <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm space-y-4">
         <h2 class="text-lg font-bold text-teal-900 border-b pb-3">Master Data Barang / Produk</h2>
@@ -592,7 +592,7 @@
       </div>
     </div>
 
-    <!-- MENU 7: MASTER DATA PEMBELI -->
+    <!-- MENU MASTER PEMBELI -->
     <div id="menu-pembeli" class="menu-content hidden space-y-6">
       <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm space-y-4">
         <h2 class="text-lg font-bold text-indigo-900 border-b pb-3">Master Data Pembeli / Klien</h2>
@@ -623,7 +623,7 @@
 
   </main>
 
-  <!-- TEMPLATE LAYOUT CETAK FAKTUR (HIDDEN DI WEB, HANYA TAMPIL SAAT PRINT) -->
+  <!-- TEMPLATE LAYOUT CETAK FAKTUR -->
   <div id="area-cetak-faktur" class="hidden">
     <div style="text-align: center; margin-bottom: 20px;">
       <h2 style="font-size: 20px; font-weight: bold; margin: 0;">FAKTUR PENJUALAN</h2>
@@ -691,7 +691,18 @@
     let keranjangJual = [];
     let cashflowManual = [];
 
-    const formatRupiah = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val);
+    const formatRupiah = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0);
+
+    // Escape String untuk keamanan pencarian & HTML Insertion
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
 
     function toggleSubmenu(button) {
       const parentGroup = button.parentElement;
@@ -829,10 +840,11 @@
       let html = '';
       matches.forEach(nama => {
         const item = produk[nama];
+        const safeNama = escapeHtml(nama);
         html += `
-          <div onclick="pilihBarangBeli('${nama.replace(/'/g, "\\'")}')" class="p-3 hover:bg-blue-50 cursor-pointer transition flex justify-between items-center group">
+          <div onclick="pilihBarangBeli('${nama.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')" class="p-3 hover:bg-blue-50 cursor-pointer transition flex justify-between items-center group">
             <div>
-              <p class="font-bold text-xs text-gray-800 group-hover:text-blue-700">${nama}</p>
+              <p class="font-bold text-xs text-gray-800 group-hover:text-blue-700">${safeNama}</p>
               <p class="text-[10px] text-gray-500">HPP: ${formatRupiah(item.hpp || 0)} | Jual: ${formatRupiah(item.hargaJual || 0)}</p>
             </div>
             <div class="text-right">
@@ -985,7 +997,7 @@
       }
 
       keranjangBeli.push({
-        idTemp: Date.now(),
+        idTemp: Date.now() + Math.random(),
         nama, qty, hpp, hargaJual,
         subtotal: qty * hpp
       });
@@ -1023,7 +1035,7 @@
         tbody.innerHTML += `
           <tr class="border-b bg-white">
             <td class="p-3">
-              <span class="font-bold text-gray-800">${item.nama}</span>
+              <span class="font-bold text-gray-800">${escapeHtml(item.nama)}</span>
               <p class="text-[10px] text-gray-500">HPP: ${formatRupiah(item.hpp)} | Jual: ${formatRupiah(item.hargaJual)}</p>
             </td>
             <td class="p-3 text-center font-bold">${item.qty}</td>
@@ -1216,7 +1228,7 @@
         total += item.subtotal;
         tbody.innerHTML += `
           <tr class="border-b bg-white">
-            <td class="p-3 font-bold text-gray-800">${item.nama}</td>
+            <td class="p-3 font-bold text-gray-800">${escapeHtml(item.nama)}</td>
             <td class="p-3 text-center font-bold">${item.qty}</td>
             <td class="p-3 text-right text-gray-600">${formatRupiah(item.hargaJual)}</td>
             <td class="p-3 text-right font-semibold text-green-700">${formatRupiah(item.subtotal)}</td>
@@ -1368,7 +1380,6 @@
       initTanggal();
     }
 
-    /* FUNGI CETAK FAKTUR PENJUALAN */
     function cetakFaktur(id) {
       const p = penjualan.find(item => item.id === id);
       if (!p) return;
@@ -1398,7 +1409,7 @@
         tbody.innerHTML += `
           <tr style="border-bottom: 1px solid #ddd;">
             <td style="padding: 6px 4px;">${index + 1}</td>
-            <td style="padding: 6px 4px; font-weight: bold;">${item.nama}</td>
+            <td style="padding: 6px 4px; font-weight: bold;">${escapeHtml(item.nama)}</td>
             <td style="padding: 6px 4px; text-align: center;">${item.qty}</td>
             <td style="padding: 6px 4px; text-align: right;">${formatRupiah(item.hargaJual)}</td>
             <td style="padding: 6px 4px; text-align: right;">${formatRupiah(item.subtotal)}</td>
@@ -1492,26 +1503,30 @@
       tabelPembeli.innerHTML = '';
 
       daftarPembeli.forEach((pembeli, index) => {
-        selectKlien.innerHTML += `<option value="${pembeli}">${pembeli}</option>`;
+        const safePembeli = escapeHtml(pembeli);
+        const jsSafePembeli = pembeli.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        selectKlien.innerHTML += `<option value="${safePembeli}">${safePembeli}</option>`;
         tabelPembeli.innerHTML += `
           <tr class="border-b">
             <td class="p-3 font-semibold text-gray-500">${index + 1}</td>
-            <td class="p-3 font-bold text-gray-800">${pembeli}</td>
+            <td class="p-3 font-bold text-gray-800">${safePembeli}</td>
             <td class="p-3 text-center">
-              <button onclick="hapusPembeli('${pembeli}')" class="text-red-500 text-xs hover:underline font-semibold">Hapus</button>
+              <button onclick="hapusPembeli('${jsSafePembeli}')" class="text-red-500 text-xs hover:underline font-semibold">Hapus</button>
             </td>
           </tr>
         `;
       });
 
       for (let nama in produk) {
-        const optionBarangHTML = `<option value="${nama}">${nama} (Stok: ${produk[nama].stok})</option>`;
+        const safeNama = escapeHtml(nama);
+        const jsSafeNama = nama.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        const optionBarangHTML = `<option value="${safeNama}">${safeNama} (Stok: ${produk[nama].stok})</option>`;
         selectJualBarang.innerHTML += optionBarangHTML;
         selectOpnameBarang.innerHTML += optionBarangHTML;
 
         tabelStok.innerHTML += `
           <tr class="border-b">
-            <td class="p-3 font-medium text-xs">${nama}</td>
+            <td class="p-3 font-medium text-xs">${safeNama}</td>
             <td class="p-3 text-xs ${produk[nama].stok < 10 ? 'text-red-500 font-bold' : ''}">${produk[nama].stok}</td>
             <td class="p-3 text-xs">${formatRupiah(produk[nama].hpp)}</td>
             <td class="p-3 text-xs font-semibold text-green-700">${formatRupiah(produk[nama].hargaJual || 0)}</td>
@@ -1520,12 +1535,12 @@
         if (tabelMasterBarang) {
           tabelMasterBarang.innerHTML += `
             <tr class="border-b">
-              <td class="p-3 font-bold text-gray-800">${nama}</td>
+              <td class="p-3 font-bold text-gray-800">${safeNama}</td>
               <td class="p-3 font-semibold ${produk[nama].stok < 10 ? 'text-red-500' : 'text-gray-700'}">${produk[nama].stok}</td>
               <td class="p-3 text-gray-600">${formatRupiah(produk[nama].hpp)}</td>
               <td class="p-3 font-semibold text-teal-700">${formatRupiah(produk[nama].hargaJual || 0)}</td>
               <td class="p-3 text-center">
-                <button onclick="hapusBarangMaster('${nama}')" class="text-red-500 text-xs hover:underline font-semibold">Hapus</button>
+                <button onclick="hapusBarangMaster('${jsSafeNama}')" class="text-red-500 text-xs hover:underline font-semibold">Hapus</button>
               </td>
             </tr>
           `;
@@ -1538,24 +1553,24 @@
           listOpname.innerHTML += `
             <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-purple-500 text-xs space-y-1">
               <div class="flex justify-between items-center">
-                <span class="font-bold text-gray-800">${op.nama}</span>
+                <span class="font-bold text-gray-800">${escapeHtml(op.nama)}</span>
                 <span class="px-2 py-0.5 text-[10px] rounded font-bold ${badgeColor}">${op.selisih > 0 ? '+' : ''}${op.selisih} Unit</span>
               </div>
               <p class="text-gray-500">${op.tgl} • Sistem: ${op.stokSistem} ➔ Fisik: <span class="font-bold text-gray-800">${op.stokReal}</span></p>
-              <p class="text-gray-600 italic text-[11px]">Catatan: ${op.alasan}</p>
+              <p class="text-gray-600 italic text-[11px]">Catatan: ${escapeHtml(op.alasan)}</p>
             </div>`;
         });
       }
 
       fakturPembelian.slice().reverse().forEach((f) => {
-        let itemRows = f.items.map(it => `<li class="text-gray-600">${it.nama} x ${it.qty} (${formatRupiah(it.subtotal)})</li>`).join('');
+        let itemRows = f.items.map(it => `<li class="text-gray-600">${escapeHtml(it.nama)} x ${it.qty} (${formatRupiah(it.subtotal)})</li>`).join('');
 
         listPembelian.innerHTML += `
           <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-600 text-xs space-y-2">
             <div class="flex justify-between items-start">
               <div>
-                <p class="font-bold text-blue-900 font-mono text-sm">${f.noFaktur}</p>
-                <p class="text-gray-500">${f.tgl} • Supplier: <span class="font-semibold text-gray-700">${f.supplier}</span></p>
+                <p class="font-bold text-blue-900 font-mono text-sm">${escapeHtml(f.noFaktur)}</p>
+                <p class="text-gray-500">${f.tgl} • Supplier: <span class="font-semibold text-gray-700">${escapeHtml(f.supplier)}</span></p>
               </div>
               <div class="text-right">
                 <p class="font-bold text-sm text-blue-700">${formatRupiah(f.totalNominal)}</p>
@@ -1582,12 +1597,55 @@
       const todayDate = new Date();
       todayDate.setHours(0,0,0,0);
 
+      // PROSES DULU RIWAYAT PIUTANG BELUM LUNAS & URUTKAN BERDASARKAN JATUH TEMPO TERDEKAT
+      if (listPiutangBelum) {
+        const piutangBelumList = penjualan.filter(p => p.status !== 'Lunas');
+
+        piutangBelumList.sort((a, b) => {
+          const tglA = (a.jatuhTempo && a.jatuhTempo !== '-') ? new Date(a.jatuhTempo) : new Date('9999-12-31');
+          const tglB = (b.jatuhTempo && b.jatuhTempo !== '-') ? new Date(b.jatuhTempo) : new Date('9999-12-31');
+          return tglA - tglB;
+        });
+
+        piutangBelumList.forEach((p) => {
+          let itemSummaryHTML = '';
+          if (p.items && Array.isArray(p.items)) {
+            itemSummaryHTML = p.items.map(it => `<li class="text-gray-600">${escapeHtml(it.nama)} x ${it.qty} (${formatRupiah(it.subtotal)})</li>`).join('');
+          } else if (p.nama) {
+            itemSummaryHTML = `<li class="text-gray-600">${escapeHtml(p.nama)} x ${p.qty} (${formatRupiah(p.totalHarga)})</li>`;
+          }
+
+          listPiutangBelum.innerHTML += `
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-amber-500 space-y-2">
+              <div class="flex justify-between items-start">
+                <div>
+                  <p class="font-bold text-gray-800 text-base">🏥 ${escapeHtml(p.klien)}</p>
+                  <p class="text-xs text-red-500 font-semibold mt-0.5">Jatuh Tempo: ${p.jatuhTempo}</p>
+                  <p class="text-sm font-bold text-amber-600 mt-1">${formatRupiah(p.totalHarga)}</p>
+                </div>
+                <div class="flex flex-col gap-1 items-end">
+                  <button onclick="pelunasan(${p.id})" class="bg-amber-600 text-white text-xs px-3 py-1 rounded-lg font-semibold hover:bg-amber-700 shadow">
+                    Tandai Lunas
+                  </button>
+                  <button onclick="cetakFaktur(${p.id})" class="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs px-3 py-1 rounded-lg font-semibold flex items-center gap-1 border">
+                    🖨️ Cetak
+                  </button>
+                </div>
+              </div>
+              <div class="bg-gray-50 p-2 rounded-lg border">
+                <p class="font-semibold text-[10px] text-gray-500 uppercase">Item Dijual:</p>
+                <ul class="list-disc pl-4 space-y-0.5 mt-0.5">${itemSummaryHTML}</ul>
+              </div>
+            </div>`;
+        });
+      }
+
       penjualan.slice().reverse().forEach((p) => {
         let itemSummaryHTML = '';
         if (p.items && Array.isArray(p.items)) {
-          itemSummaryHTML = p.items.map(it => `<li class="text-gray-600">${it.nama} x ${it.qty} (${formatRupiah(it.subtotal)})</li>`).join('');
+          itemSummaryHTML = p.items.map(it => `<li class="text-gray-600">${escapeHtml(it.nama)} x ${it.qty} (${formatRupiah(it.subtotal)})</li>`).join('');
         } else if (p.nama) {
-          itemSummaryHTML = `<li class="text-gray-600">${p.nama} x ${p.qty} (${formatRupiah(p.totalHarga)})</li>`;
+          itemSummaryHTML = `<li class="text-gray-600">${escapeHtml(p.nama)} x ${p.qty} (${formatRupiah(p.totalHarga)})</li>`;
         }
 
         if (p.status === 'Lunas') {
@@ -1599,8 +1657,8 @@
               <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-emerald-500 space-y-2">
                 <div class="flex justify-between items-start">
                   <div>
-                    <p class="font-bold text-gray-800 text-base">🏥 ${p.klien}</p>
-                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Faktur: ${p.faktur} • Tanggal: ${p.tgl}</p>
+                    <p class="font-bold text-gray-800 text-base">🏥 ${escapeHtml(p.klien)}</p>
+                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Faktur: ${escapeHtml(p.faktur)} • Tanggal: ${p.tgl}</p>
                     <p class="text-sm font-bold text-emerald-600 mt-1">${formatRupiah(p.totalHarga)}</p>
                   </div>
                   <div class="flex flex-col gap-1 items-end">
@@ -1635,10 +1693,10 @@
                 <div class="bg-white p-3 rounded-lg border border-amber-200 flex justify-between items-center text-xs">
                   <div>
                     <div class="flex items-center gap-2">
-                      <span class="font-bold text-gray-800">🏥 ${p.klien}</span>
+                      <span class="font-bold text-gray-800">🏥 ${escapeHtml(p.klien)}</span>
                       <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeColor}">${statusText}</span>
                     </div>
-                    <p class="text-gray-500 mt-0.5">Faktur: ${p.faktur} • Tanggal Tempo: <span class="font-semibold text-gray-700">${p.jatuhTempo}</span></p>
+                    <p class="text-gray-500 mt-0.5">Faktur: ${escapeHtml(p.faktur)} • Tanggal Tempo: <span class="font-semibold text-gray-700">${p.jatuhTempo}</span></p>
                     <p class="font-bold text-amber-700 mt-0.5">Tagihan: ${formatRupiah(p.totalHarga)}</p>
                   </div>
                   <div class="flex items-center gap-2">
@@ -1653,31 +1711,6 @@
               `;
             }
           }
-
-          if (listPiutangBelum) {
-            listPiutangBelum.innerHTML += `
-              <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-amber-500 space-y-2">
-                <div class="flex justify-between items-start">
-                  <div>
-                    <p class="font-bold text-gray-800 text-base">🏥 ${p.klien}</p>
-                    <p class="text-xs text-red-500 font-semibold mt-0.5">Jatuh Tempo: ${p.jatuhTempo}</p>
-                    <p class="text-sm font-bold text-amber-600 mt-1">${formatRupiah(p.totalHarga)}</p>
-                  </div>
-                  <div class="flex flex-col gap-1 items-end">
-                    <button onclick="pelunasan(${p.id})" class="bg-amber-600 text-white text-xs px-3 py-1 rounded-lg font-semibold hover:bg-amber-700 shadow">
-                      Tandai Lunas
-                    </button>
-                    <button onclick="cetakFaktur(${p.id})" class="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs px-3 py-1 rounded-lg font-semibold flex items-center gap-1 border">
-                      🖨️ Cetak
-                    </button>
-                  </div>
-                </div>
-                <div class="bg-gray-50 p-2 rounded-lg border">
-                  <p class="font-semibold text-[10px] text-gray-500 uppercase">Item Dijual:</p>
-                  <ul class="list-disc pl-4 space-y-0.5 mt-0.5">${itemSummaryHTML}</ul>
-                </div>
-              </div>`;
-          }
         }
 
         listFakturJual.innerHTML += `
@@ -1685,8 +1718,8 @@
             <div class="flex justify-between items-start">
               <div>
                 <div class="flex items-center gap-2">
-                  <span class="font-bold text-blue-800 font-mono text-sm">${p.faktur}</span>
-                  <span class="bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded text-[11px]">🏥 ${p.klien}</span>
+                  <span class="font-bold text-blue-800 font-mono text-sm">${escapeHtml(p.faktur)}</span>
+                  <span class="bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded text-[11px]">🏥 ${escapeHtml(p.klien)}</span>
                 </div>
                 <p class="text-gray-500 mt-1">${p.tgl}</p>
               </div>
@@ -1786,7 +1819,7 @@
         tabelCashflow.innerHTML += `
           <tr class="border-b hover:bg-slate-50">
             <td class="p-3 text-gray-600 font-medium">${item.tgl}</td>
-            <td class="p-3 font-semibold text-gray-800">${item.ket}</td>
+            <td class="p-3 font-semibold text-gray-800">${escapeHtml(item.ket)}</td>
             <td class="p-3 text-right font-bold text-green-600">${item.debit > 0 ? formatRupiah(item.debit) : '-'}</td>
             <td class="p-3 text-right font-bold text-red-600">${item.kredit > 0 ? formatRupiah(item.kredit) : '-'}</td>
             <td class="p-3 text-right font-bold text-emerald-800">${formatRupiah(item.saldoSaatIni)}</td>
