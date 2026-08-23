@@ -5,9 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KAYANA APPS - POS B2B Cloud</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     .font-brand { font-family: 'Poppins', sans-serif; }
+    
+    /* Submenu Smooth Transition */
+    .submenu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+    .menu-group.open .submenu {
+      max-height: 300px;
+    }
+    .menu-group.open .chevron {
+      transform: rotate(180deg);
+    }
+
+    /* CSS KHUSUS CETAK FAKTUR */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #area-cetak-faktur, #area-cetak-faktur * {
+        visibility: visible;
+      }
+      #area-cetak-faktur {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 20px;
+        background: #fff;
+        color: #000;
+        font-family: Arial, sans-serif;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+    }
   </style>
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzwoWLZVQ_2WsYV2XPE2OM7wnpc2GJ0IxBm9jFjZfE41ZOJeIE2H8zVixY-nvoKRYDWjQ/exec";
@@ -78,7 +116,7 @@
   <!-- OVERLAY SIDEBAR MOBILE -->
   <div id="sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden"></div>
 
-  <!-- SIDEBAR NAVIGATION -->
+  <!-- SIDEBAR NAVIGATION BERCABANG -->
   <aside id="sidebar" class="fixed md:static top-0 left-0 bottom-0 z-50 w-64 bg-slate-900 text-white flex-shrink-0 flex flex-col justify-between border-r border-slate-800 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
     <div>
       <div class="p-5 border-b border-slate-800 text-left flex justify-between items-center">
@@ -93,29 +131,68 @@
 
       <nav class="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)] md:max-h-none">
         <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition bg-blue-600 text-white">
-          <span class="text-base">📊</span> Dashboard
+          <i class="fa-solid fa-chart-pie text-blue-400 w-5"></i>
+          <span>Dashboard</span>
         </button>
-        <button onclick="switchTab('pembelian')" id="nav-pembelian" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition text-slate-400 hover:bg-slate-800 hover:text-white">
-          <span class="text-base">📥</span> Pembelian
-        </button>
-        <button onclick="switchTab('penjualan')" id="nav-penjualan" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition text-slate-400 hover:bg-slate-800 hover:text-white">
-          <span class="text-base">🛒</span> Penjualan
-        </button>
-        <button onclick="switchTab('piutang')" id="nav-piutang" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition text-slate-400 hover:bg-slate-800 hover:text-white">
-          <span class="text-base">📑</span> Piutang
-        </button>
-        <button onclick="switchTab('cashflow')" id="nav-cashflow" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition text-slate-400 hover:bg-slate-800 hover:text-white">
-          <span class="text-base">💵</span> Cashflow / Arus Kas
-        </button>
-        <button onclick="switchTab('stok')" id="nav-stok" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition text-slate-400 hover:bg-slate-800 hover:text-white">
-          <span class="text-base">📦</span> Stok & Riwayat
-        </button>
-        <button onclick="switchTab('barang')" id="nav-barang" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition text-slate-400 hover:bg-slate-800 hover:text-white">
-          <span class="text-base">💊</span> Master Data Barang
-        </button>
-        <button onclick="switchTab('pembeli')" id="nav-pembeli" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition text-slate-400 hover:bg-slate-800 hover:text-white">
-          <span class="text-base">👥</span> Data Pembeli
-        </button>
+
+        <div class="menu-group">
+          <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-semibold transition text-slate-400 hover:bg-slate-800 hover:text-white">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-cart-shopping text-blue-400 w-5"></i>
+              <span>Penjualan</span>
+            </div>
+            <i class="fa-solid fa-chevron-down chevron text-xs transition-transform duration-200"></i>
+          </button>
+          <div class="submenu pl-9 pr-2 space-y-1 bg-slate-950/40 rounded-lg py-1">
+            <a href="javascript:void(0)" onclick="switchTab('penjualan')" id="nav-penjualan" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Kasir / Transaksi</a>
+            <a href="javascript:void(0)" onclick="switchTab('riwayat-penjualan')" id="nav-riwayat-penjualan" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Riwayat Penjualan</a>
+            <a href="javascript:void(0)" onclick="switchTab('piutang')" id="nav-piutang" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Piutang / Tagihan</a>
+            <a href="javascript:void(0)" onclick="switchTab('pembeli')" id="nav-pembeli" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Data Pembeli</a>
+          </div>
+        </div>
+
+        <div class="menu-group">
+          <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-semibold transition text-slate-400 hover:bg-slate-800 hover:text-white">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-box-archive text-orange-400 w-5"></i>
+              <span>Pembelian</span>
+            </div>
+            <i class="fa-solid fa-chevron-down chevron text-xs transition-transform duration-200"></i>
+          </button>
+          <div class="submenu pl-9 pr-2 space-y-1 bg-slate-950/40 rounded-lg py-1">
+            <a href="javascript:void(0)" onclick="switchTab('pembelian')" id="nav-pembelian" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Restock / Faktur Beli</a>
+            <a href="javascript:void(0)" onclick="switchTab('riwayat-pembelian')" id="nav-riwayat-pembelian" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Riwayat Pembelian</a>
+          </div>
+        </div>
+
+        <div class="menu-group">
+          <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-semibold transition text-slate-400 hover:bg-slate-800 hover:text-white">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-boxes-stacked text-yellow-400 w-5"></i>
+              <span>Barang & Stok</span>
+            </div>
+            <i class="fa-solid fa-chevron-down chevron text-xs transition-transform duration-200"></i>
+          </button>
+          <div class="submenu pl-9 pr-2 space-y-1 bg-slate-950/40 rounded-lg py-1">
+            <a href="javascript:void(0)" onclick="switchTab('barang')" id="nav-barang" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Master Data Barang</a>
+            <a href="javascript:void(0)" onclick="switchTab('stok')" id="nav-stok" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Sisa Stok & Harga</a>
+            <a href="javascript:void(0)" onclick="toggleModalOpname(true)" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Stok Opname Fisik</a>
+          </div>
+        </div>
+
+        <div class="menu-group">
+          <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-semibold transition text-slate-400 hover:bg-slate-800 hover:text-white">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-wallet text-emerald-400 w-5"></i>
+              <span>Keuangan</span>
+            </div>
+            <i class="fa-solid fa-chevron-down chevron text-xs transition-transform duration-200"></i>
+          </button>
+          <div class="submenu pl-9 pr-2 space-y-1 bg-slate-950/40 rounded-lg py-1">
+            <a href="javascript:void(0)" onclick="switchTab('cashflow')" id="nav-cashflow" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Cashflow / Arus Kas</a>
+          </div>
+        </div>
+
       </nav>
     </div>
 
@@ -261,6 +338,12 @@
       </div>
     </div>
 
+    <!-- MENU RIWAYAT PEMBELIAN -->
+    <div id="menu-riwayat-pembelian" class="menu-content hidden space-y-6">
+      <h2 class="text-xl font-bold text-blue-800">Riwayat Faktur Pembelian (Restock)</h2>
+      <div id="list-riwayat-pembelian" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+
     <!-- MENU 3: PENJUALAN -->
     <div id="menu-penjualan" class="menu-content hidden space-y-6">
       <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm space-y-4">
@@ -360,10 +443,29 @@
       </div>
     </div>
 
+    <!-- MENU RIWAYAT PENJUALAN -->
+    <div id="menu-riwayat-penjualan" class="menu-content hidden space-y-6">
+      <h2 class="text-xl font-bold text-gray-800">Riwayat Transaksi Penjualan</h2>
+      <div id="list-faktur-jual" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+    </div>
+
     <!-- MENU 4: PIUTANG -->
-    <div id="menu-piutang" class="menu-content hidden space-y-4">
+    <div id="menu-piutang" class="menu-content hidden space-y-6">
       <h2 class="text-xl font-bold text-amber-700">Tagihan & Piutang</h2>
-      <div id="list-piutang" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      
+      <div class="space-y-3">
+        <h3 class="text-md font-bold text-amber-800 flex items-center gap-2 border-b pb-1">
+          <span>⏳</span> Belum Lunas (Piutang)
+        </h3>
+        <div id="list-piutang-belum" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+
+      <div class="space-y-3 pt-4">
+        <h3 class="text-md font-bold text-emerald-800 flex items-center gap-2 border-b pb-1">
+          <span>✅</span> Sudah Lunas
+        </h3>
+        <div id="list-piutang-lunas" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
     </div>
 
     <!-- MENU CASHFLOW -->
@@ -439,7 +541,7 @@
       </div>
     </div>
 
-    <!-- MENU 5: STOK & RIWAYAT -->
+    <!-- MENU 5: STOK & RIWAYAT OPNAME -->
     <div id="menu-stok" class="menu-content hidden space-y-6">
       <div class="flex justify-between items-center">
         <h2 class="text-xl font-bold text-gray-800">Sisa Stok & Harga Produk</h2>
@@ -464,12 +566,6 @@
 
       <h2 class="text-lg font-bold text-purple-800 pt-2">Riwayat Stok Opname</h2>
       <div id="list-riwayat-opname" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
-
-      <h2 class="text-lg font-bold text-blue-800 pt-2">Riwayat Faktur Pembelian (Restock)</h2>
-      <div id="list-riwayat-pembelian" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-
-      <h2 class="text-lg font-bold text-gray-700 pt-2">Riwayat Transaksi Penjualan</h2>
-      <div id="list-faktur-jual" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
     </div>
 
     <!-- MENU 6: MASTER DATA BARANG -->
@@ -527,6 +623,64 @@
 
   </main>
 
+  <!-- TEMPLATE LAYOUT CETAK FAKTUR (HIDDEN DI WEB, HANYA TAMPIL SAAT PRINT) -->
+  <div id="area-cetak-faktur" class="hidden">
+    <div style="text-align: center; margin-bottom: 20px;">
+      <h2 style="font-size: 20px; font-weight: bold; margin: 0;">FAKTUR PENJUALAN</h2>
+    </div>
+
+    <table style="width: 100%; font-size: 13px; margin-bottom: 15px; border-collapse: collapse;">
+      <tr>
+        <td style="width: 15%; font-weight: bold; padding: 3px 0;">No. Faktur</td>
+        <td style="width: 35%; padding: 3px 0;">: <span id="print-no-faktur"></span></td>
+        <td style="width: 20%; font-weight: bold; padding: 3px 0;">Kepada Yth.</td>
+        <td style="width: 30%; padding: 3px 0;">: <span id="print-pembeli"></span></td>
+      </tr>
+      <tr>
+        <td style="font-weight: bold; padding: 3px 0;">Tanggal Faktur</td>
+        <td style="padding: 3px 0;">: <span id="print-tgl-faktur"></span></td>
+        <td style="font-weight: bold; padding: 3px 0;">Status Pembayaran</td>
+        <td style="padding: 3px 0;">: <span id="print-status-bayar"></span></td>
+      </tr>
+      <tr>
+        <td style="font-weight: bold; padding: 3px 0;">Jatuh Tempo</td>
+        <td style="padding: 3px 0;">: <span id="print-jatuh-tempo"></span></td>
+        <td colspan="2"></td>
+      </tr>
+    </table>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px;">
+      <thead>
+        <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000;">
+          <th style="text-align: left; padding: 8px 4px;">No</th>
+          <th style="text-align: left; padding: 8px 4px;">Nama Item / Barang</th>
+          <th style="text-align: center; padding: 8px 4px;">Qty</th>
+          <th style="text-align: right; padding: 8px 4px;">Harga Unit</th>
+          <th style="text-align: right; padding: 8px 4px;">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody id="print-tabel-items">
+      </tbody>
+      <tfoot>
+        <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000; font-weight: bold;">
+          <td colspan="4" style="text-align: right; padding: 8px 4px;">TOTAL KESELURUHAN:</td>
+          <td style="text-align: right; padding: 8px 4px;" id="print-total"></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div style="margin-top: 50px; display: flex; justify-content: space-between; text-align: center; font-size: 13px;">
+      <div style="width: 40%;">
+        <p style="margin-bottom: 60px;">Penerima,</p>
+        <p style="border-bottom: 1px solid #000; display: inline-block; width: 80%; margin: 0;"></p>
+      </div>
+      <div style="width: 40%;">
+        <p style="margin-bottom: 60px;">Pengirim / Hormat Kami,</p>
+        <p style="border-bottom: 1px solid #000; display: inline-block; width: 80%; margin: 0;"></p>
+      </div>
+    </div>
+  </div>
+
   <script>
     let produk = {};
     let penjualan = [];
@@ -538,6 +692,19 @@
     let cashflowManual = [];
 
     const formatRupiah = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val);
+
+    function toggleSubmenu(button) {
+      const parentGroup = button.parentElement;
+      const isOpen = parentGroup.classList.contains('open');
+
+      document.querySelectorAll('.menu-group').forEach(group => {
+        group.classList.remove('open');
+      });
+
+      if (!isOpen) {
+        parentGroup.classList.add('open');
+      }
+    }
 
     function toggleMobileSidebar() {
       const sidebar = document.getElementById('sidebar');
@@ -710,19 +877,31 @@
 
     function switchTab(tabName) {
       document.querySelectorAll('.menu-content').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('aside nav button').forEach(el => {
-        el.classList.remove('bg-blue-600', 'text-white');
+      
+      const navDashboard = document.getElementById('nav-dashboard');
+      if (navDashboard) {
+        navDashboard.classList.remove('bg-blue-600', 'text-white');
+        navDashboard.classList.add('text-slate-400');
+      }
+
+      document.querySelectorAll('.submenu a').forEach(el => {
+        el.classList.remove('text-sky-400', 'font-bold');
         el.classList.add('text-slate-400');
       });
 
       document.getElementById('menu-' + tabName).classList.remove('hidden');
+      
       const activeNav = document.getElementById('nav-' + tabName);
       if (activeNav) {
-        activeNav.classList.remove('text-slate-400');
-        activeNav.classList.add('bg-blue-600', 'text-white');
+        if (tabName === 'dashboard') {
+          activeNav.classList.remove('text-slate-400');
+          activeNav.classList.add('bg-blue-600', 'text-white');
+        } else {
+          activeNav.classList.remove('text-slate-400');
+          activeNav.classList.add('text-sky-400', 'font-bold');
+        }
       }
 
-      // Auto close sidebar di tampilan mobile saat menu diklik
       if (window.innerWidth < 768) {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebar-overlay');
@@ -1189,6 +1368,52 @@
       initTanggal();
     }
 
+    /* FUNGI CETAK FAKTUR PENJUALAN */
+    function cetakFaktur(id) {
+      const p = penjualan.find(item => item.id === id);
+      if (!p) return;
+
+      document.getElementById('print-no-faktur').innerText = p.faktur;
+      document.getElementById('print-tgl-faktur').innerText = p.tgl;
+      document.getElementById('print-pembeli').innerText = p.klien;
+      document.getElementById('print-status-bayar').innerText = p.status;
+      document.getElementById('print-jatuh-tempo').innerText = p.jatuhTempo || '-';
+
+      const tbody = document.getElementById('print-tabel-items');
+      tbody.innerHTML = '';
+
+      let items = [];
+      if (p.items && Array.isArray(p.items)) {
+        items = p.items;
+      } else if (p.nama) {
+        items = [{
+          nama: p.nama,
+          qty: p.qty,
+          hargaJual: p.totalHarga / p.qty,
+          subtotal: p.totalHarga
+        }];
+      }
+
+      items.forEach((item, index) => {
+        tbody.innerHTML += `
+          <tr style="border-bottom: 1px solid #ddd;">
+            <td style="padding: 6px 4px;">${index + 1}</td>
+            <td style="padding: 6px 4px; font-weight: bold;">${item.nama}</td>
+            <td style="padding: 6px 4px; text-align: center;">${item.qty}</td>
+            <td style="padding: 6px 4px; text-align: right;">${formatRupiah(item.hargaJual)}</td>
+            <td style="padding: 6px 4px; text-align: right;">${formatRupiah(item.subtotal)}</td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('print-total').innerText = formatRupiah(p.totalHarga);
+
+      const areaCetak = document.getElementById('area-cetak-faktur');
+      areaCetak.classList.remove('hidden');
+      window.print();
+      areaCetak.classList.add('hidden');
+    }
+
     document.getElementById('form-opname').addEventListener('submit', (e) => {
       e.preventDefault();
       const nama = document.getElementById('opname-barang').value;
@@ -1228,12 +1453,22 @@
       }
     }
 
+    function batalPelunasan(id) {
+      if (!confirm('Ubah status transaksi ini menjadi Belum Lunas (Tempo)?')) return;
+      const idx = penjualan.findIndex(p => p.id === id);
+      if (idx !== -1) {
+        penjualan[idx].status = 'Tempo';
+        simpanDataKeCloud();
+      }
+    }
+
     function updateTampilan() {
       const selectJualBarang = document.getElementById('jual-barang');
       const selectOpnameBarang = document.getElementById('opname-barang');
       
       const tabelStok = document.getElementById('tabel-stok');
-      const listPiutang = document.getElementById('list-piutang');
+      const listPiutangBelum = document.getElementById('list-piutang-belum');
+      const listPiutangLunas = document.getElementById('list-piutang-lunas');
       const listFakturJual = document.getElementById('list-faktur-jual');
       const listPembelian = document.getElementById('list-riwayat-pembelian');
       const listOpname = document.getElementById('list-riwayat-opname');
@@ -1246,7 +1481,8 @@
       selectOpnameBarang.innerHTML = '<option value="">-- Pilih Barang --</option>';
       
       tabelStok.innerHTML = '';
-      listPiutang.innerHTML = '';
+      if (listPiutangBelum) listPiutangBelum.innerHTML = '';
+      if (listPiutangLunas) listPiutangLunas.innerHTML = '';
       listFakturJual.innerHTML = '';
       listPembelian.innerHTML = '';
       if (listOpname) listOpname.innerHTML = '';
@@ -1357,6 +1593,31 @@
         if (p.status === 'Lunas') {
           totalOmset += p.totalHarga;
           totalLaba += p.laba;
+
+          if (listPiutangLunas) {
+            listPiutangLunas.innerHTML += `
+              <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-emerald-500 space-y-2">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <p class="font-bold text-gray-800 text-base">🏥 ${p.klien}</p>
+                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Faktur: ${p.faktur} • Tanggal: ${p.tgl}</p>
+                    <p class="text-sm font-bold text-emerald-600 mt-1">${formatRupiah(p.totalHarga)}</p>
+                  </div>
+                  <div class="flex flex-col gap-1 items-end">
+                    <button onclick="batalPelunasan(${p.id})" class="bg-emerald-600 text-white text-xs px-3 py-1 rounded-lg font-semibold hover:bg-emerald-700 shadow" title="Klik untuk mengubah kembali ke status Tempo">
+                      <span>✓</span> Lunas
+                    </button>
+                    <button onclick="cetakFaktur(${p.id})" class="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs px-3 py-1 rounded-lg font-semibold flex items-center gap-1 border">
+                      🖨️ Cetak
+                    </button>
+                  </div>
+                </div>
+                <div class="bg-gray-50 p-2 rounded-lg border">
+                  <p class="font-semibold text-[10px] text-gray-500 uppercase">Item Dijual:</p>
+                  <ul class="list-disc pl-4 space-y-0.5 mt-0.5">${itemSummaryHTML}</ul>
+                </div>
+              </div>`;
+          }
         } else {
           totalPiutang += p.totalHarga;
 
@@ -1380,31 +1641,43 @@
                     <p class="text-gray-500 mt-0.5">Faktur: ${p.faktur} • Tanggal Tempo: <span class="font-semibold text-gray-700">${p.jatuhTempo}</span></p>
                     <p class="font-bold text-amber-700 mt-0.5">Tagihan: ${formatRupiah(p.totalHarga)}</p>
                   </div>
-                  <button onclick="pelunasan(${p.id})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-semibold text-xs shadow">
-                    ✓ Lunasi
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <button onclick="cetakFaktur(${p.id})" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-2.5 py-1.5 rounded-lg font-semibold text-xs border">
+                      🖨️ Cetak
+                    </button>
+                    <button onclick="pelunasan(${p.id})" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg font-semibold text-xs shadow">
+                      Tandai Lunas
+                    </button>
+                  </div>
                 </div>
               `;
             }
           }
 
-          listPiutang.innerHTML += `
-            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-amber-500 space-y-2">
-              <div class="flex justify-between items-start">
-                <div>
-                  <p class="font-bold text-gray-800 text-base">🏥 ${p.klien}</p>
-                  <p class="text-xs text-red-500 font-semibold mt-0.5">Jatuh Tempo: ${p.jatuhTempo}</p>
-                  <p class="text-sm font-bold text-amber-600 mt-1">${formatRupiah(p.totalHarga)}</p>
+          if (listPiutangBelum) {
+            listPiutangBelum.innerHTML += `
+              <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-amber-500 space-y-2">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <p class="font-bold text-gray-800 text-base">🏥 ${p.klien}</p>
+                    <p class="text-xs text-red-500 font-semibold mt-0.5">Jatuh Tempo: ${p.jatuhTempo}</p>
+                    <p class="text-sm font-bold text-amber-600 mt-1">${formatRupiah(p.totalHarga)}</p>
+                  </div>
+                  <div class="flex flex-col gap-1 items-end">
+                    <button onclick="pelunasan(${p.id})" class="bg-amber-600 text-white text-xs px-3 py-1 rounded-lg font-semibold hover:bg-amber-700 shadow">
+                      Tandai Lunas
+                    </button>
+                    <button onclick="cetakFaktur(${p.id})" class="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs px-3 py-1 rounded-lg font-semibold flex items-center gap-1 border">
+                      🖨️ Cetak
+                    </button>
+                  </div>
                 </div>
-                <button onclick="pelunasan(${p.id})" class="bg-green-600 text-white text-xs px-3 py-2 rounded-lg font-semibold flex items-center gap-1 hover:bg-green-700">
-                  <span>✓</span> Lunas
-                </button>
-              </div>
-              <div class="bg-gray-50 p-2 rounded-lg border">
-                <p class="font-semibold text-[10px] text-gray-500 uppercase">Item Dijual:</p>
-                <ul class="list-disc pl-4 space-y-0.5 mt-0.5">${itemSummaryHTML}</ul>
-              </div>
-            </div>`;
+                <div class="bg-gray-50 p-2 rounded-lg border">
+                  <p class="font-semibold text-[10px] text-gray-500 uppercase">Item Dijual:</p>
+                  <ul class="list-disc pl-4 space-y-0.5 mt-0.5">${itemSummaryHTML}</ul>
+                </div>
+              </div>`;
+          }
         }
 
         listFakturJual.innerHTML += `
@@ -1427,6 +1700,9 @@
               <ul class="list-disc pl-4 space-y-0.5 mt-0.5">${itemSummaryHTML}</ul>
             </div>
             <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+              <button onclick="cetakFaktur(${p.id})" class="bg-blue-50 hover:bg-blue-100 text-blue-800 text-[11px] px-3 py-1 rounded-lg font-semibold flex items-center gap-1 border border-blue-200">
+                🖨️ Cetak
+              </button>
               <button onclick="editPenjualan(${p.id})" class="bg-amber-100 hover:bg-amber-200 text-amber-800 text-[11px] px-3 py-1 rounded-lg font-semibold flex items-center gap-1">
                 ✏️ Revisi
               </button>
@@ -1436,6 +1712,13 @@
             </div>
           </div>`;
       });
+
+      if (listPiutangBelum && listPiutangBelum.innerHTML.trim() === '') {
+        listPiutangBelum.innerHTML = '<div class="col-span-full p-4 bg-white rounded-xl text-center text-xs text-gray-400">Tidak ada piutang yang belum lunas</div>';
+      }
+      if (listPiutangLunas && listPiutangLunas.innerHTML.trim() === '') {
+        listPiutangLunas.innerHTML = '<div class="col-span-full p-4 bg-white rounded-xl text-center text-xs text-gray-400">Belum ada riwayat tagihan lunas</div>';
+      }
 
       const alertBox = document.getElementById('alert-jatuh-tempo-box');
       const listAlertContainer = document.getElementById('list-alert-tempo');
