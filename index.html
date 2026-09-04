@@ -23,9 +23,8 @@
       transform: rotate(180deg);
     }
 
-    /* CSS KHUSUS CETAK FAKTUR (PERBAIKAN HALAMAN KOSONG) */
+    /* CSS KHUSUS CETAK FAKTUR */
     @media print {
-      /* Sembunyikan semua elemen kecuali area cetak faktur */
       body > *:not(#area-cetak-faktur) {
         display: none !important;
       }
@@ -387,12 +386,18 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-gray-600">Pilih Nama Pembeli / Toko</label>
-            <select id="jual-klien" required class="w-full border p-2.5 rounded-lg mt-1 text-sm bg-white font-semibold text-gray-800">
-              <option value="">-- Pilih Pembeli Terdaftar --</option>
-            </select>
+          <div class="relative">
+            <label class="block text-xs font-semibold text-gray-600">Cari / Ketik Nama Pembeli / Toko</label>
+            <div class="relative mt-1">
+              <input type="text" id="jual-klien" oninput="cariPembeliJual(this.value)" onfocus="cariPembeliJual(this.value)" autocomplete="off" class="w-full border p-2.5 pl-8 rounded-lg text-sm bg-white font-semibold text-gray-800 focus:outline-green-500" placeholder="Ketik kata kunci nama pembeli...">
+              <span class="absolute left-2.5 top-2.5 text-gray-400 text-xs">🔍</span>
+            </div>
+
+            <div id="search-results-pembeli" class="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 hidden max-h-64 overflow-y-auto">
+              <div id="list-pembeli-search" class="divide-y divide-gray-100"></div>
+            </div>
           </div>
+
           <div>
             <label class="block text-xs font-semibold text-gray-600">Status Pembayaran</label>
             <select id="jual-status" onchange="toggleTempoInput()" class="w-full border p-2.5 rounded-lg mt-1 text-sm bg-white">
@@ -565,20 +570,26 @@
     <!-- MENU STOK -->
     <div id="menu-stok" class="menu-content hidden space-y-6">
       <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-800">Sisa Stok & Harga Produk</h2>
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Sisa Stok & Analisis Penjualan</h2>
+          <p class="text-xs text-gray-500">Estimasi Saran Order berdasarkan tren penjualan 30 hari & waktu tunggu 8 minggu (56 hari).</p>
+        </div>
         <button onclick="toggleModalOpname(true)" class="bg-purple-600 hover:bg-purple-700 text-white text-xs px-4 py-2 rounded-lg font-semibold flex items-center gap-1 shadow">
           📋 Stok Opname Fisik
         </button>
       </div>
 
       <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
-        <table class="w-full text-left text-sm min-w-[500px] md:min-w-full">
+        <table class="w-full text-left text-sm min-w-[700px] md:min-w-full">
           <thead class="bg-gray-100 border-b text-gray-700">
             <tr>
-              <th class="p-3 text-xs font-bold">Barang</th>
-              <th class="p-3 text-xs font-bold">Stok</th>
-              <th class="p-3 text-xs font-bold">HPP</th>
-              <th class="p-3 text-xs font-bold">Harga Jual</th>
+              <th class="p-3 text-xs font-bold">Nama Barang</th>
+              <th class="p-3 text-xs font-bold text-center">Sisa Stok</th>
+              <th class="p-3 text-xs font-bold text-right">HPP</th>
+              <th class="p-3 text-xs font-bold text-right">Harga Jual</th>
+              <th class="p-3 text-xs font-bold text-center bg-blue-50 text-blue-900">Total Terjual (30 Hari)</th>
+              <th class="p-3 text-xs font-bold text-center bg-blue-50 text-blue-900">Rata2 / Hari</th>
+              <th class="p-3 text-xs font-bold text-center bg-amber-50 text-amber-900">Saran Order (Lead Time 8 Minggu)</th>
             </tr>
           </thead>
           <tbody id="tabel-stok"></tbody>
@@ -690,7 +701,7 @@
       </tfoot>
     </table>
 
-    <div style="margin-top: 50px; display: flex; justify-content: space-between; text-align: center; font-size: 13px; page-break-inside: avoid;">
+    <div style="margin-top: 50px; display: flex; justify-between; text-align: center; font-size: 13px; page-break-inside: avoid;">
       <div style="width: 40%;">
         <p style="margin-bottom: 60px;">Penerima,</p>
         <p style="border-bottom: 1px solid #000; display: inline-block; width: 80%; margin: 0;"></p>
@@ -890,11 +901,54 @@
       document.getElementById('search-results-beli').classList.add('hidden');
     }
 
+    function cariPembeliJual(keyword) {
+      const boxResult = document.getElementById('search-results-pembeli');
+      const containerList = document.getElementById('list-pembeli-search');
+      
+      const key = keyword.trim().toLowerCase();
+      const matches = daftarPembeli.filter(pembeli => pembeli.toLowerCase().includes(key));
+
+      if (matches.length === 0) {
+        containerList.innerHTML = `
+          <div class="p-3 text-xs text-gray-500 space-y-1">
+            <p class="font-bold text-gray-700">Pembeli tidak ditemukan!</p>
+            <p>Silakan daftarkan pembeli baru melalui menu <b>Penjualan ➔ Data Pembeli</b>.</p>
+          </div>
+        `;
+        boxResult.classList.remove('hidden');
+        return;
+      }
+
+      let html = '';
+      matches.forEach(pembeli => {
+        const safePembeli = escapeHtml(pembeli);
+        html += `
+          <div onclick="pilihPembeliJual('${pembeli.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')" class="p-3 hover:bg-green-50 cursor-pointer transition flex justify-between items-center group">
+            <p class="font-bold text-xs text-gray-800 group-hover:text-green-700">🏥 ${safePembeli}</p>
+          </div>
+        `;
+      });
+
+      containerList.innerHTML = html;
+      boxResult.classList.remove('hidden');
+    }
+
+    function pilihPembeliJual(nama) {
+      document.getElementById('jual-klien').value = nama;
+      document.getElementById('search-results-pembeli').classList.add('hidden');
+    }
+
     document.addEventListener('click', (e) => {
-      const box = document.getElementById('search-results-beli');
-      const input = document.getElementById('beli-nama');
-      if (box && !box.contains(e.target) && e.target !== input) {
-        box.classList.add('hidden');
+      const boxBeli = document.getElementById('search-results-beli');
+      const inputBeli = document.getElementById('beli-nama');
+      if (boxBeli && !boxBeli.contains(e.target) && e.target !== inputBeli) {
+        boxBeli.classList.add('hidden');
+      }
+
+      const boxPembeli = document.getElementById('search-results-pembeli');
+      const inputPembeli = document.getElementById('jual-klien');
+      if (boxPembeli && !boxPembeli.contains(e.target) && e.target !== inputPembeli) {
+        boxPembeli.classList.add('hidden');
       }
     });
 
@@ -1273,12 +1327,17 @@
       const editId = document.getElementById('edit-penjualan-id').value;
       const tgl = document.getElementById('jual-tgl').value;
       const faktur = document.getElementById('jual-faktur').value.trim();
-      const klien = document.getElementById('jual-klien').value;
+      const klien = document.getElementById('jual-klien').value.trim();
       const status = document.getElementById('jual-status').value;
       const jatuhTempo = document.getElementById('jual-jatuh-tempo').value || '-';
 
       if (!klien) {
         alert('Pilih nama pembeli terlebih dahulu!');
+        return;
+      }
+
+      if (!daftarPembeli.includes(klien)) {
+        alert('Nama pembeli belum terdaftar! Silakan daftarkan pembeli di menu Data Pembeli terlebih dahulu.');
         return;
       }
 
@@ -1494,6 +1553,35 @@
       }
     }
 
+    // HITUNG PENJUALAN 30 HARI TERAKHIR PER BARANG
+    function hitungTerjual30Hari() {
+      const total30Hari = {};
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      
+      const batas30Hari = new Date(today);
+      batas30Hari.setDate(batas30Hari.getDate() - 30);
+      batas30Hari.setHours(0, 0, 0, 0);
+
+      penjualan.forEach(p => {
+        if (!p.tgl) return;
+        const tglJual = new Date(p.tgl);
+        if (tglJual >= batas30Hari && tglJual <= today) {
+          if (p.items && Array.isArray(p.items)) {
+            p.items.forEach(it => {
+              if (it.nama) {
+                total30Hari[it.nama] = (total30Hari[it.nama] || 0) + (parseInt(it.qty) || 0);
+              }
+            });
+          } else if (p.nama) {
+            total30Hari[p.nama] = (total30Hari[p.nama] || 0) + (parseInt(p.qty) || 0);
+          }
+        }
+      });
+
+      return total30Hari;
+    }
+
     function updateTampilan() {
       const selectJualBarang = document.getElementById('jual-barang');
       const selectOpnameBarang = document.getElementById('opname-barang');
@@ -1504,7 +1592,6 @@
       const listFakturJual = document.getElementById('list-faktur-jual');
       const listPembelian = document.getElementById('list-riwayat-pembelian');
       const listOpname = document.getElementById('list-riwayat-opname');
-      const selectKlien = document.getElementById('jual-klien');
       const tabelPembeli = document.getElementById('tabel-master-pembeli');
       const tabelMasterBarang = document.getElementById('tabel-master-barang');
       const tabelCashflow = document.getElementById('tabel-cashflow');
@@ -1520,13 +1607,11 @@
       if (listOpname) listOpname.innerHTML = '';
       if (tabelMasterBarang) tabelMasterBarang.innerHTML = '';
 
-      selectKlien.innerHTML = '<option value="">-- Pilih Pembeli Terdaftar --</option>';
       tabelPembeli.innerHTML = '';
 
       daftarPembeli.forEach((pembeli, index) => {
         const safePembeli = escapeHtml(pembeli);
         const jsSafePembeli = pembeli.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        selectKlien.innerHTML += `<option value="${safePembeli}">${safePembeli}</option>`;
         tabelPembeli.innerHTML += `
           <tr class="border-b">
             <td class="p-3 font-semibold text-gray-500">${index + 1}</td>
@@ -1538,6 +1623,8 @@
         `;
       });
 
+      const dataTerjual30 = hitungTerjual30Hari();
+
       for (let nama in produk) {
         const safeNama = escapeHtml(nama);
         const jsSafeNama = nama.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -1545,12 +1632,33 @@
         selectJualBarang.innerHTML += optionBarangHTML;
         selectOpnameBarang.innerHTML += optionBarangHTML;
 
+        // HITUNG PENJUALAN & SARAN ORDER
+        const totalTerjual = dataTerjual30[nama] || 0;
+        const rataHari = totalTerjual / 30;
+        
+        // Lead time 8 minggu = 56 Hari
+        const kebutuhanLeadTime = rataHari * 56;
+        const sisaStok = produk[nama].stok || 0;
+        
+        // Perhitungan kuantitas order yang disarankan
+        const saranOrderQty = Math.ceil(kebutuhanLeadTime - sisaStok);
+        
+        let badgeSaranOrder = '';
+        if (saranOrderQty > 0) {
+          badgeSaranOrder = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">📦 Order: +${saranOrderQty} unit</span>`;
+        } else {
+          badgeSaranOrder = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">✅ Stok Aman</span>`;
+        }
+
         tabelStok.innerHTML += `
-          <tr class="border-b">
-            <td class="p-3 font-medium text-xs">${safeNama}</td>
-            <td class="p-3 text-xs ${produk[nama].stok < 10 ? 'text-red-500 font-bold' : ''}">${produk[nama].stok}</td>
-            <td class="p-3 text-xs">${formatRupiah(produk[nama].hpp)}</td>
-            <td class="p-3 text-xs font-semibold text-green-700">${formatRupiah(produk[nama].hargaJual || 0)}</td>
+          <tr class="border-b hover:bg-slate-50">
+            <td class="p-3 font-bold text-xs text-gray-800">${safeNama}</td>
+            <td class="p-3 text-xs text-center font-bold ${sisaStok < 10 ? 'text-red-500' : 'text-gray-700'}">${sisaStok}</td>
+            <td class="p-3 text-xs text-right">${formatRupiah(produk[nama].hpp)}</td>
+            <td class="p-3 text-xs text-right font-semibold text-green-700">${formatRupiah(produk[nama].hargaJual || 0)}</td>
+            <td class="p-3 text-xs text-center font-bold text-blue-800 bg-blue-50/40">${totalTerjual} unit</td>
+            <td class="p-3 text-xs text-center font-semibold text-blue-600 bg-blue-50/40">${rataHari.toFixed(2)} / hari</td>
+            <td class="p-3 text-xs text-center bg-amber-50/30">${badgeSaranOrder}</td>
           </tr>`;
 
         if (tabelMasterBarang) {
@@ -1618,7 +1726,6 @@
       const todayDate = new Date();
       todayDate.setHours(0,0,0,0);
 
-      // PROSES DULU RIWAYAT PIUTANG BELUM LUNAS & URUTKAN BERDASARKAN JATUH TEMPO TERDEKAT
       if (listPiutangBelum) {
         const piutangBelumList = penjualan.filter(p => p.status !== 'Lunas');
 
@@ -1734,6 +1841,10 @@
           }
         }
 
+        // Tampilan kartu Riwayat Penjualan dengan Tanggal Jatuh Tempo di bawah Tanggal Faktur
+        const isTempo = p.status !== 'Lunas';
+        const textTempoColor = isTempo ? 'text-red-500 font-semibold' : 'text-gray-500';
+
         listFakturJual.innerHTML += `
           <div class="bg-white p-4 rounded-xl shadow-sm border-b text-xs space-y-2">
             <div class="flex justify-between items-start">
@@ -1742,7 +1853,8 @@
                   <span class="font-bold text-blue-800 font-mono text-sm">${escapeHtml(p.faktur)}</span>
                   <span class="bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded text-[11px]">🏥 ${escapeHtml(p.klien)}</span>
                 </div>
-                <p class="text-gray-500 mt-1">${p.tgl}</p>
+                <p class="text-gray-500 mt-1">Tanggal Faktur: ${p.tgl}</p>
+                <p class="${textTempoColor} mt-0.5">Jatuh Tempo: ${p.jatuhTempo || '-'}</p>
               </div>
               <div class="text-right">
                 <p class="font-bold text-gray-800 text-sm">${formatRupiah(p.totalHarga)}</p>
