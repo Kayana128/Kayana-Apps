@@ -196,7 +196,7 @@
           </button>
           <div class="submenu pl-9 pr-2 space-y-1 bg-slate-950/40 rounded-lg py-1">
             <a href="javascript:void(0)" onclick="switchTab('barang')" id="nav-barang" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Master Data Barang</a>
-            <a href="javascript:void(0)" onclick="switchTab('stok')" id="nav-stok" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Sisa Stok & Harga</a>
+            <a href="javascript:void(0)" onclick="switchTab('stok')" id="nav-stok" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Sisa Stok & Nilai Aset</a>
             <a href="javascript:void(0)" onclick="toggleModalOpname(true)" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Stok Opname Fisik</a>
           </div>
         </div>
@@ -263,6 +263,30 @@
         <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-500">
           <p class="text-xs font-semibold text-gray-500">Total Laba Bersih</p>
           <p id="dash-laba" class="text-2xl font-bold text-green-600 mt-1">Rp 0</p>
+        </div>
+      </div>
+
+      <!-- METRIK ASET STOK BARANG DI DASHBOARD -->
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-purple-100 space-y-3">
+        <h3 class="text-sm font-bold text-purple-900 flex items-center gap-2">
+          <span>📦</span> Ringkasan Nilai Aset Inventaris (Stok Gudang)
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+          <div class="bg-purple-50/60 p-4 rounded-xl border border-purple-100">
+            <p class="text-xs font-semibold text-purple-700">Nilai Aset (Harga Beli / HPP)</p>
+            <p id="dash-aset-hpp" class="text-xl font-bold text-purple-900 mt-1">Rp 0</p>
+            <p id="dash-total-unit-stok" class="text-[10px] text-purple-600 mt-0.5">Total Stok: 0 unit</p>
+          </div>
+          <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-100">
+            <p class="text-xs font-semibold text-blue-700">Estimasi Nilai Aset (Harga Jual)</p>
+            <p id="dash-aset-jual" class="text-xl font-bold text-blue-900 mt-1">Rp 0</p>
+            <p class="text-[10px] text-blue-600 mt-0.5">Potensi omset jika stok terjual habis</p>
+          </div>
+          <div class="bg-emerald-50/60 p-4 rounded-xl border border-emerald-100">
+            <p class="text-xs font-semibold text-emerald-700">Potensi Laba Kotor Stok</p>
+            <p id="dash-potensi-laba" class="text-xl font-bold text-emerald-800 mt-1">Rp 0</p>
+            <p class="text-[10px] text-emerald-600 mt-0.5">Selisih Harga Jual - HPP</p>
+          </div>
         </div>
       </div>
     </div>
@@ -483,7 +507,7 @@
           <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
             <span>📊</span> Laporan Penjualan & Laba Bulanan
           </h2>
-          <p class="text-xs text-gray-500 mt-1">Analisis omset, HPP, margin laba kotor, piutang, dan performa per produk.</p>
+          <p class="text-xs text-gray-500 mt-1">Analisis omset, total qty terjual, HPP, margin laba kotor, piutang, dan performa per produk.</p>
         </div>
         <div class="flex items-center gap-2 w-full sm:w-auto">
           <label class="text-xs font-bold text-gray-700 whitespace-nowrap">Pilih Bulan:</label>
@@ -491,29 +515,35 @@
         </div>
       </div>
 
-      <!-- KARTU SUMMARY METRIK BULANAN -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500 space-y-1">
-          <p class="text-xs font-semibold text-gray-500">Omset Penjualan (Total)</p>
-          <p id="lap-total-omset" class="text-2xl font-bold text-gray-800">Rp 0</p>
+      <!-- KARTU SUMMARY METRIK BULANAN (5 METRIK METRIK) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+        <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500 space-y-1">
+          <p class="text-xs font-semibold text-gray-500">Omset Penjualan</p>
+          <p id="lap-total-omset" class="text-xl font-bold text-gray-800">Rp 0</p>
           <p id="lap-total-faktur" class="text-[11px] text-gray-400 font-medium">0 Transaksi</p>
         </div>
 
-        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-500 space-y-1">
-          <p class="text-xs font-semibold text-gray-500">Total HPP (Modal Barang)</p>
-          <p id="lap-total-hpp" class="text-2xl font-bold text-amber-700">Rp 0</p>
+        <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-indigo-500 space-y-1">
+          <p class="text-xs font-semibold text-gray-500">Total Qty Terjual</p>
+          <p id="lap-total-qty-all" class="text-xl font-bold text-indigo-700">0 Unit</p>
+          <p class="text-[11px] text-gray-400 font-medium">Seluruh Produk (All Item)</p>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-amber-500 space-y-1">
+          <p class="text-xs font-semibold text-gray-500">Total HPP (Modal)</p>
+          <p id="lap-total-hpp" class="text-xl font-bold text-amber-700">Rp 0</p>
           <p class="text-[11px] text-gray-400 font-medium">Harga Pokok Penjualan</p>
         </div>
 
-        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-500 space-y-1 bg-emerald-50/20">
+        <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-emerald-500 space-y-1 bg-emerald-50/20">
           <p class="text-xs font-semibold text-emerald-800">Total Laba Kotor</p>
-          <p id="lap-total-laba" class="text-2xl font-bold text-emerald-600">Rp 0</p>
+          <p id="lap-total-laba" class="text-xl font-bold text-emerald-600">Rp 0</p>
           <p id="lap-margin-laba" class="text-[11px] font-bold text-emerald-700">Margin: 0%</p>
         </div>
 
-        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-500 space-y-1">
+        <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-red-500 space-y-1">
           <p class="text-xs font-semibold text-gray-500">Piutang Belum Lunas</p>
-          <p id="lap-total-piutang" class="text-2xl font-bold text-red-600">Rp 0</p>
+          <p id="lap-total-piutang" class="text-xl font-bold text-red-600">Rp 0</p>
           <p id="lap-count-piutang" class="text-[11px] text-gray-400 font-medium">0 Transaksi Tempo</p>
         </div>
       </div>
@@ -665,27 +695,55 @@
 
     <!-- MENU STOK -->
     <div id="menu-stok" class="menu-content hidden space-y-6">
-      <div class="flex justify-between items-center">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 class="text-xl font-bold text-gray-800">Sisa Stok & Analisis Penjualan</h2>
-          <p class="text-xs text-gray-500">Estimasi Saran Order berdasarkan tren penjualan 30 hari & waktu tunggu 8 minggu (56 hari).</p>
+          <h2 class="text-xl font-bold text-gray-800">Sisa Stok & Laporan Aset Barang</h2>
+          <p class="text-xs text-gray-500">Rincian sisa persediaan barang, nilai aset persediaan (Modal & Jual), serta analisis saran order 8 minggu.</p>
         </div>
         <button onclick="toggleModalOpname(true)" class="bg-purple-600 hover:bg-purple-700 text-white text-xs px-4 py-2 rounded-lg font-semibold flex items-center gap-1 shadow">
           📋 Stok Opname Fisik
         </button>
       </div>
 
+      <!-- KARTU SUMMARY LAPORAN ASET STOK -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-indigo-500">
+          <p class="text-xs font-semibold text-gray-500">Total Kuantitas Stok Gudang</p>
+          <p id="stok-total-qty" class="text-2xl font-bold text-indigo-700 mt-1">0 Unit</p>
+          <p class="text-[11px] text-gray-400">Dari seluruh item terdaftar</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-purple-500">
+          <p class="text-xs font-semibold text-gray-500">Total Aset (Berdasarkan HPP / Modal)</p>
+          <p id="stok-total-aset-hpp" class="text-2xl font-bold text-purple-700 mt-1">Rp 0</p>
+          <p class="text-[11px] text-gray-400">Total nilai investasi persediaan</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500">
+          <p class="text-xs font-semibold text-gray-500">Total Aset (Berdasarkan Harga Jual)</p>
+          <p id="stok-total-aset-jual" class="text-2xl font-bold text-blue-700 mt-1">Rp 0</p>
+          <p class="text-[11px] text-gray-400">Potensi penerimaan omset kotor</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-500">
+          <p class="text-xs font-semibold text-gray-500">Potensi Margin Laba Stok</p>
+          <p id="stok-potensi-laba" class="text-2xl font-bold text-emerald-600 mt-1">Rp 0</p>
+          <p class="text-[11px] text-gray-400">Selisih Harga Jual - HPP</p>
+        </div>
+      </div>
+
       <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
-        <table class="w-full text-left text-sm min-w-[700px] md:min-w-full">
+        <table class="w-full text-left text-sm min-w-[850px] md:min-w-full">
           <thead class="bg-gray-100 border-b text-gray-700">
             <tr>
               <th class="p-3 text-xs font-bold">Nama Barang</th>
               <th class="p-3 text-xs font-bold text-center">Sisa Stok</th>
-              <th class="p-3 text-xs font-bold text-right">HPP</th>
+              <th class="p-3 text-xs font-bold text-right">HPP (Modal)</th>
               <th class="p-3 text-xs font-bold text-right">Harga Jual</th>
-              <th class="p-3 text-xs font-bold text-center bg-blue-50 text-blue-900">Total Terjual (30 Hari)</th>
-              <th class="p-3 text-xs font-bold text-center bg-blue-50 text-blue-900">Rata2 / Hari</th>
-              <th class="p-3 text-xs font-bold text-center bg-amber-50 text-amber-900">Saran Order (Lead Time 8 Minggu)</th>
+              <th class="p-3 text-xs font-bold text-right text-purple-800 bg-purple-50/50">Nilai Aset HPP (Rp)</th>
+              <th class="p-3 text-xs font-bold text-right text-blue-800 bg-blue-50/50">Nilai Aset Jual (Rp)</th>
+              <th class="p-3 text-xs font-bold text-center bg-gray-50">Terjual (30 Hari)</th>
+              <th class="p-3 text-xs font-bold text-center bg-amber-50 text-amber-900">Saran Order (Lead Time 8 Wk)</th>
             </tr>
           </thead>
           <tbody id="tabel-stok"></tbody>
@@ -1661,7 +1719,7 @@
       }
     }
 
-    // FUNGSI OLAH LAPORAN PENJUALAN & LABA BULANAN (TERMASUK PIUTANG)
+    // FUNGSI OLAH LAPORAN PENJUALAN & LABA BULANAN (TERMASUK PIUTANG DAN TOTAL QTY TERJUAL)
     function renderLaporanBulanan() {
       const selectedMonth = document.getElementById('filter-bulan-laporan').value;
       if (!selectedMonth) return;
@@ -1670,6 +1728,7 @@
       let totalHppBulan = 0;
       let totalLabaBulan = 0;
       let totalPiutangBulan = 0;
+      let totalQtyTerjualBulan = 0; // Metrik Baru: Total Qty All Items
       let countTotalFaktur = 0;
       let countPiutang = 0;
 
@@ -1696,6 +1755,7 @@
             const totalHppItem = hpp * qty;
             const labaItem = subtotal - totalHppItem;
 
+            totalQtyTerjualBulan += qty;
             hppFaktur += totalHppItem;
             labaFaktur += labaItem;
 
@@ -1713,6 +1773,7 @@
           const laba = parseFloat(p.laba) || 0;
           const hppTotal = omset - laba;
 
+          totalQtyTerjualBulan += qty;
           hppFaktur += hppTotal;
           labaFaktur += laba;
 
@@ -1736,6 +1797,8 @@
 
       document.getElementById('lap-total-omset').innerText = formatRupiah(totalOmsetBulan);
       document.getElementById('lap-total-faktur').innerText = `${countTotalFaktur} Total Transaksi`;
+
+      document.getElementById('lap-total-qty-all').innerText = `${totalQtyTerjualBulan.toLocaleString('id-ID')} Unit`;
 
       document.getElementById('lap-total-hpp').innerText = formatRupiah(totalHppBulan);
 
@@ -1868,6 +1931,11 @@
 
       const dataTerjual30 = hitungTerjual30Hari();
 
+      // PERHITUNGAN TOTAL ASET STOK PERSERDIAAN
+      let totalQtyStokSemua = 0;
+      let totalNilaiAsetHPP = 0;
+      let totalNilaiAsetJual = 0;
+
       for (let nama in produk) {
         const safeNama = escapeHtml(nama);
         const jsSafeNama = nama.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -1875,13 +1943,24 @@
         selectJualBarang.innerHTML += optionBarangHTML;
         selectOpnameBarang.innerHTML += optionBarangHTML;
 
+        // HITUNG NILAI ASET
+        const sisaStok = produk[nama].stok || 0;
+        const hppUnit = produk[nama].hpp || 0;
+        const hargaJualUnit = produk[nama].hargaJual || 0;
+
+        const nilAsetHPPItem = sisaStok * hppUnit;
+        const nilAsetJualItem = sisaStok * hargaJualUnit;
+
+        totalQtyStokSemua += sisaStok;
+        totalNilaiAsetHPP += nilAsetHPPItem;
+        totalNilaiAsetJual += nilAsetJualItem;
+
         // HITUNG PENJUALAN & SARAN ORDER
         const totalTerjual = dataTerjual30[nama] || 0;
         const rataHari = totalTerjual / 30;
         
         // Lead time 8 minggu = 56 Hari
         const kebutuhanLeadTime = rataHari * 56;
-        const sisaStok = produk[nama].stok || 0;
         
         // Perhitungan kuantitas order yang disarankan
         const saranOrderQty = Math.ceil(kebutuhanLeadTime - sisaStok);
@@ -1897,10 +1976,11 @@
           <tr class="border-b hover:bg-slate-50">
             <td class="p-3 font-bold text-xs text-gray-800">${safeNama}</td>
             <td class="p-3 text-xs text-center font-bold ${sisaStok < 10 ? 'text-red-500' : 'text-gray-700'}">${sisaStok}</td>
-            <td class="p-3 text-xs text-right">${formatRupiah(produk[nama].hpp)}</td>
-            <td class="p-3 text-xs text-right font-semibold text-green-700">${formatRupiah(produk[nama].hargaJual || 0)}</td>
-            <td class="p-3 text-xs text-center font-bold text-blue-800 bg-blue-50/40">${totalTerjual} unit</td>
-            <td class="p-3 text-xs text-center font-semibold text-blue-600 bg-blue-50/40">${rataHari.toFixed(2)} / hari</td>
+            <td class="p-3 text-xs text-right">${formatRupiah(hppUnit)}</td>
+            <td class="p-3 text-xs text-right font-semibold text-green-700">${formatRupiah(hargaJualUnit)}</td>
+            <td class="p-3 text-xs text-right font-bold text-purple-900 bg-purple-50/30">${formatRupiah(nilAsetHPPItem)}</td>
+            <td class="p-3 text-xs text-right font-bold text-blue-900 bg-blue-50/30">${formatRupiah(nilAsetJualItem)}</td>
+            <td class="p-3 text-xs text-center font-bold text-blue-800 bg-gray-50">${totalTerjual} unit</td>
             <td class="p-3 text-xs text-center bg-amber-50/30">${badgeSaranOrder}</td>
           </tr>`;
 
@@ -1918,6 +1998,20 @@
           `;
         }
       }
+
+      // UPDATE RINGKASAN METRIK ASET STOK DI MENU STOK & DASHBOARD
+      const potensiLabaStok = totalNilaiAsetJual - totalNilaiAsetHPP;
+
+      document.getElementById('stok-total-qty').innerText = `${totalQtyStokSemua.toLocaleString('id-ID')} Unit`;
+      document.getElementById('stok-total-aset-hpp').innerText = formatRupiah(totalNilaiAsetHPP);
+      document.getElementById('stok-total-aset-jual').innerText = formatRupiah(totalNilaiAsetJual);
+      document.getElementById('stok-potensi-laba').innerText = formatRupiah(potensiLabaStok);
+
+      // Metrik Aset Dashboard
+      document.getElementById('dash-aset-hpp').innerText = formatRupiah(totalNilaiAsetHPP);
+      document.getElementById('dash-aset-jual').innerText = formatRupiah(totalNilaiAsetJual);
+      document.getElementById('dash-potensi-laba').innerText = formatRupiah(potensiLabaStok);
+      document.getElementById('dash-total-unit-stok').innerText = `Total Stok: ${totalQtyStokSemua.toLocaleString('id-ID')} unit`;
 
       if (listOpname) {
         opname.slice().reverse().forEach((op) => {
