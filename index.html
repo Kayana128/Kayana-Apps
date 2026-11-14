@@ -68,7 +68,7 @@
     }
   </style>
   <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzwoWLZVQ_2WsYV2XPE2OM7wnpc2GJ0IxBm9jFjZfE41ZOJeIE2H8zVixY-nvoKRYDWjQ/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5j6liHDClm61EEza-1h4W1j44qlO5ugqZGAw8GFavUVDfckPDm-sPjUCNWwZLY-hXRw/exec";
   </script>
 </head>
 <body class="bg-gray-100 font-sans min-h-screen flex flex-col md:flex-row">
@@ -93,7 +93,7 @@
           <p id="error-msg-login" class="text-red-500 text-[11px] font-bold mt-1.5 hidden">Password salah! Silakan coba lagi.</p>
         </div>
 
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition duration-200">
+        <button type="submit" id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition duration-200">
           Buka Aplikasi 🚀
         </button>
       </form>
@@ -101,7 +101,7 @@
   </div>
 
   <!-- Status Loading Overlay -->
-  <div id="loading-overlay" class="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center text-white font-bold hidden">
+  <div id="loading-overlay" class="fixed inset-0 bg-black/50 z-[250] flex items-center justify-center text-white font-bold hidden">
     <div class="bg-white text-gray-800 p-5 rounded-lg shadow-xl text-center space-y-2">
       <div class="animate-spin inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
       <p id="loading-text" class="text-sm">Menyingkronkan Data Cloud...</p>
@@ -244,9 +244,12 @@
       </nav>
     </div>
 
-    <div class="p-4 border-t border-slate-800">
+    <div class="p-4 border-t border-slate-800 space-y-2">
       <button onclick="muatDataDariCloud()" class="w-full bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2">
         <span>🔄</span> Sync Data Cloud
+      </button>
+      <button onclick="logoutAplikasi()" class="w-full bg-red-950/60 hover:bg-red-900 text-xs text-red-300 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 border border-red-900/50">
+        <span>🔒</span> Kunci Aplikasi
       </button>
     </div>
   </aside>
@@ -542,7 +545,7 @@
         </div>
       </div>
 
-      <!-- KARTU SUMMARY METRIK BULANAN (5 METRIK METRIK) -->
+      <!-- KARTU SUMMARY METRIK BULANAN (5 METRIK) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
         <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500 space-y-1">
           <p class="text-xs font-semibold text-gray-500">Omset Penjualan</p>
@@ -895,25 +898,6 @@
   </div>
 
   <script>
-    // Password aplikasi (Ubah teks di bawah sesuai keinginan Anda)
-    const APP_PASSWORD = "cialis45";
-
-    function prosesLogin(e) {
-      e.preventDefault();
-      const inputPass = document.getElementById('input-password').value;
-      const errorMsg = document.getElementById('error-msg-login');
-
-      if (inputPass === APP_PASSWORD) {
-        document.getElementById('login-modal').classList.add('hidden');
-        initTanggal();
-        muatDataDariCloud();
-      } else {
-        errorMsg.classList.remove('hidden');
-        document.getElementById('input-password').value = '';
-        document.getElementById('input-password').focus();
-      }
-    }
-
     let produk = {};
     let penjualan = [];
     let fakturPembelian = [];
@@ -924,6 +908,48 @@
     let cashflowManual = [];
 
     const formatRupiah = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0);
+
+    // Cek sesi login saat halaman dimuat
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedPass = sessionStorage.getItem("kayana_session_pass");
+      if (savedPass) {
+        initTanggal();
+        muatDataDariCloud(savedPass, true);
+      }
+    });
+
+    // Proses Login dengan Validasi ke Google Apps Script
+    async function prosesLogin(e) {
+      e.preventDefault();
+      const inputPass = document.getElementById('input-password').value;
+      const errorMsg = document.getElementById('error-msg-login');
+      const btnLogin = document.getElementById('btn-login');
+
+      errorMsg.classList.add('hidden');
+      btnLogin.disabled = true;
+      btnLogin.innerText = "Memverifikasi...";
+
+      initTanggal();
+      const sukses = await muatDataDariCloud(inputPass, false);
+
+      btnLogin.disabled = false;
+      btnLogin.innerText = "Buka Aplikasi 🚀";
+
+      if (sukses) {
+        sessionStorage.setItem("kayana_session_pass", inputPass);
+        document.getElementById('login-modal').classList.add('hidden');
+      } else {
+        errorMsg.classList.remove('hidden');
+        document.getElementById('input-password').value = '';
+        document.getElementById('input-password').focus();
+      }
+    }
+
+    function logoutAplikasi() {
+      sessionStorage.removeItem("kayana_session_pass");
+      document.getElementById('input-password').value = '';
+      document.getElementById('login-modal').classList.remove('hidden');
+    }
 
     // Escape String untuk keamanan pencarian & HTML Insertion
     function escapeHtml(str) {
@@ -969,12 +995,23 @@
       document.getElementById('modal-opname').classList.toggle('hidden', !show);
     }
 
-    async function muatDataDariCloud() {
+    async function muatDataDariCloud(passOverride = null, isAutoSession = false) {
+      const activePass = passOverride || sessionStorage.getItem("kayana_session_pass");
+      if (!activePass) {
+        logoutAplikasi();
+        return false;
+      }
+
       showLoading('Mengambil Data dari Cloud...');
       try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getInitData`);
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getInitData&password=${encodeURIComponent(activePass)}`);
         const result = await response.json();
         
+        if (result.status === "error") {
+          if (isAutoSession) logoutAplikasi();
+          return false;
+        }
+
         produk = result.produk || {};
         fakturPembelian = result.fakturPembelian || [];
         penjualan = result.penjualan || [];
@@ -984,18 +1021,29 @@
           daftarPembeli = result.daftarPembeli;
         }
 
+        document.getElementById('login-modal').classList.add('hidden');
         updateTampilan();
+        return true;
       } catch (err) {
         alert('Gagal mengambil data dari Google Sheets! Periksa koneksi internet.');
+        return false;
       } finally {
         hideLoading();
       }
     }
 
     async function simpanDataKeCloud() {
+      const activePass = sessionStorage.getItem("kayana_session_pass");
+      if (!activePass) {
+        alert('Sesi Anda telah berakhir. Silakan login kembali.');
+        logoutAplikasi();
+        return;
+      }
+
       showLoading('Menyimpan Data ke Cloud...');
       try {
         const payload = {
+          password: activePass,
           produk,
           fakturPembelian,
           penjualan,
@@ -1774,7 +1822,7 @@
       let totalHppBulan = 0;
       let totalLabaBulan = 0;
       let totalPiutangBulan = 0;
-      let totalQtyTerjualBulan = 0; // Metrik Baru: Total Qty All Items
+      let totalQtyTerjualBulan = 0;
       let countTotalFaktur = 0;
       let countPiutang = 0;
 
@@ -1787,7 +1835,6 @@
         listTransaksiBulan.push(p);
         countTotalFaktur++;
         
-        // OMSET & LABA DIHITUNG DARI SELURUH TRANSAKSI (LUNAS MAUPUN TEMPO)
         totalOmsetBulan += (p.totalHarga || 0);
 
         let labaFaktur = 0;
@@ -1977,7 +2024,7 @@
 
       const dataTerjual30 = hitungTerjual30Hari();
 
-      // PERHITUNGAN TOTAL ASET STOK PERSERDIAAN
+      // PERHITUNGAN TOTAL ASET STOK PERSEDIAAN
       let totalQtyStokSemua = 0;
       let totalNilaiAsetHPP = 0;
       let totalNilaiAsetJual = 0;
@@ -2159,7 +2206,6 @@
           itemSummaryHTML = `<li class="text-gray-600">${escapeHtml(p.nama)} x ${p.qty} (${formatRupiah(p.totalHarga)})</li>`;
         }
 
-        // SEMUA PENJUALAN MENAMBAHKAN TOTAL OMSET & TOTAL LABA
         totalOmset += p.totalHarga;
         totalLaba += p.laba;
 
@@ -2225,7 +2271,6 @@
           }
         }
 
-        // Tampilan kartu Riwayat Penjualan dengan Tanggal Jatuh Tempo di bawah Tanggal Faktur
         const isTempo = p.status !== 'Lunas';
         const textTempoColor = isTempo ? 'text-red-500 font-semibold' : 'text-gray-500';
 
