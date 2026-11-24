@@ -320,11 +320,15 @@
           <div class="submenu pl-9 pr-2 space-y-1 bg-slate-950/40 rounded-lg py-1">
             <a href="javascript:void(0)" onclick="switchTab('penjualan')" id="nav-penjualan" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Kasir / Transaksi</a>
             <a href="javascript:void(0)" onclick="switchTab('riwayat-penjualan')" id="nav-riwayat-penjualan" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Riwayat Penjualan</a>
-            <a href="javascript:void(0)" onclick="switchTab('laporan-bulanan')" id="nav-laporan-bulanan" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">📊 Laporan & Laba Bulanan</a>
             <a href="javascript:void(0)" onclick="switchTab('piutang')" id="nav-piutang" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Piutang / Tagihan</a>
             <a href="javascript:void(0)" onclick="switchTab('pembeli')" id="nav-pembeli" class="block py-2 px-3 text-xs text-slate-400 hover:text-white rounded hover:bg-slate-800">Data Pembeli</a>
           </div>
         </div>
+
+        <button onclick="switchTab('laporan-bulanan')" id="nav-laporan-bulanan" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition text-slate-400 hover:bg-slate-800 hover:text-white">
+          <i class="fa-solid fa-chart-column text-emerald-400 w-5"></i>
+          <span>Laporan Bulanan</span>
+        </button>
 
         <div class="menu-group">
           <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-semibold transition text-slate-400 hover:bg-slate-800 hover:text-white">
@@ -766,6 +770,30 @@
               <tr>
                 <td colspan="6" class="p-4 text-center text-gray-400">Tidak ada transaksi penjualan pada bulan ini.</td>
               </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- DAFTAR OUTLET TANPA TRANSAKSI -->
+      <div class="bg-white rounded-xl shadow-sm p-4 md:p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b pb-3">
+          <div>
+            <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">🏥 Outlet Belum Order</h3>
+            <p class="text-xs text-gray-500 mt-1">Daftar outlet yang belum melakukan transaksi pada bulan berjalan.</p>
+          </div>
+          <div id="lap-outlet-tidak-order" class="text-sm font-bold text-red-700">0 Outlet</div>
+        </div>
+        <div class="overflow-x-auto border rounded-xl">
+          <table class="w-full text-left text-sm min-w-[320px]">
+            <thead class="bg-slate-100 border-b text-slate-700">
+              <tr>
+                <th class="p-3 font-bold w-16 text-center">No.</th>
+                <th class="p-3 font-bold">Nama Outlet</th>
+              </tr>
+            </thead>
+            <tbody id="tabel-laporan-outlet">
+              <tr><td colspan="2" class="p-4 text-center text-gray-400">Semua outlet sudah bertransaksi pada periode ini.</td></tr>
             </tbody>
           </table>
         </div>
@@ -2078,6 +2106,27 @@
           totalPiutangBulan += totalFaktur;
         }
       });
+
+      // Tampilkan hanya outlet master yang tidak memiliki transaksi pada periode laporan.
+      const outletBertransaksi = new Set(
+        listTransaksiBulan.map(p => String(p.klien || '').trim().toLocaleLowerCase('id')).filter(Boolean)
+      );
+      const outletTanpaTransaksi = [...new Set(
+        (Array.isArray(daftarPembeli) ? daftarPembeli : [])
+          .map(nama => String(nama || '').trim())
+          .filter(Boolean)
+      )].filter(nama => !outletBertransaksi.has(nama.toLocaleLowerCase('id')))
+        .sort((a, b) => a.localeCompare(b, 'id'));
+      document.getElementById('lap-outlet-tidak-order').innerText = `${outletTanpaTransaksi.length} Outlet`;
+      const tbodyOutlet = document.getElementById('tabel-laporan-outlet');
+      if (!outletTanpaTransaksi.length) {
+        tbodyOutlet.innerHTML = '<tr><td colspan="2" class="p-4 text-center text-gray-400">Semua outlet sudah bertransaksi pada periode ini.</td></tr>';
+      } else {
+        tbodyOutlet.innerHTML = outletTanpaTransaksi.map((nama, index) => `<tr class="border-b hover:bg-slate-50">
+          <td class="p-3 text-center text-gray-500">${index + 1}</td>
+          <td class="p-3 font-semibold text-gray-800">🏥 ${escapeHtml(nama)}</td>
+        </tr>`).join('');
+      }
 
       const periodeLabel = awal === akhir ? awal : `${awal} s.d. ${akhir}`;
       document.querySelector('#menu-laporan-bulanan h2').innerHTML = `<span>📊</span> Laporan Penjualan & Laba (${periodeLabel})`;
